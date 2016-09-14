@@ -1,0 +1,11 @@
+[package]
+name = "meno"
+version = "0.1.0"
+authors = ["Teemu Erkkola <teemu.erkkola@iki.fi>"]
+
+[dependencies]
+ws = "*"
+getopts = "0.2.14"
+rusqlite = "0.7.3"
+sha2 = "0.1.2"
+rand = "0.3"

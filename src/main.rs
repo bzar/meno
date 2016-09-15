@@ -232,6 +232,19 @@ fn leave_team(user_id: i64, teamname: &str,
     Ok("Left!".to_string())
 }
 
+fn get_teams(user_id: i64, db: &rusqlite::Connection) -> Result<String, Error>  {
+    let stmt = "
+        SELECT t.teamname
+        FROM team t
+        JOIN team_member m on m.team_id = t.id
+        WHERE m.user_id = $1";
+    let mut query = db.prepare(stmt).unwrap();
+    let from_row = |row: &rusqlite::Row| { row.get::<i32, String>(0) };
+    let results: Vec<String> = query.query_map(&[&user_id], from_row).unwrap()
+        .map(|x| x.unwrap()).collect();
+    Ok(results.join(";"))
+}
+
 fn database_connection() -> rusqlite::Connection {
     let conn = rusqlite::Connection::open("meno.sqlite").unwrap();
     let create_tables = "
@@ -319,6 +332,10 @@ fn process_message(content: String, db: &rusqlite::Connection) -> Result<String,
             let user_id = try!(authenticate_token(parts.next().unwrap_or(""), &db));
             let team = parts.next().unwrap_or("");
             get_members(user_id, &team, &db)
+        }
+        "teams" => {
+            let user_id = try!(authenticate_token(parts.next().unwrap_or(""), &db));
+            get_teams(user_id, &db)
         }
         _ => Err(Error::UnknownCommand(cmd.to_string()))
     }
